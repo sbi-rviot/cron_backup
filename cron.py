@@ -1,5 +1,5 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
-import os
+import os, time
 
 import blueprints.cronBackup.functions as func
 
@@ -95,6 +95,8 @@ def backup():
       directions = func.create_backup_directions(bs)
     
       bs = "/" + bs
+
+      time.sleep(1)
       
       # Daily backup
       func.create_daily_backup(bs, directions['DAILY'])
