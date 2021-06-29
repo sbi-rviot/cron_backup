@@ -81,11 +81,22 @@ def backup():
     Note: Backups are saved as tar.gz files. In order to extract them, keeping directory trees, the following can be used using python3:
 
     > import tarfile, os
+    > from cryptography.fernet import Fernet
+    >
+    > # extract file
     > date_to_extract = '2021-06-18'  # to be changed if other backup to extract
     > DIRECTION_BACKUP_DAILY = "C:/Users/renau/Desktop/mongo/backuptest/backup/data/DAILY" # to be changed if other backup to extract
     > tar = tarfile.open(os.path.join(DIRECTION_BACKUP_DAILY, date_to_extract, "w:gz")
-    > tar.add(DIRECTION, arcname="Name of the backup to extract")
+    > tar.add(DIRECTION, arcname=BACKUPNAME)
     > tar.close()
+    >
+    > # decrypt file
+    > with open(os.path.join(DIRECTION, BACKUPNAME), "rb") as file:
+    >     encrypted_data = file.read()
+    > cipher_suite = Fernet(str.encode(KEY))
+    > decrypted_data = cipher_suite.decrypt(encrypted_data)
+    > with open(os.path.join(DIRECTION, BACKUPNAME), "wb") as file:
+    >     file.write(decrypted_data)
     '''
 
     backup_sources = [s.strip() for s in os.environ.get('SOURCES').split(",")]

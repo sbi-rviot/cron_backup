@@ -1,6 +1,7 @@
 import shutil, os, tarfile
 from pathlib import Path
 from datetime import datetime
+from cryptography.fernet import Fernet
 
 import blueprints.cronBackup.config as cg
 
@@ -24,15 +25,26 @@ def create_backup_directions(source):
     return directions
 
 
+def encrypt_file(source, today_date):
+    with open(os.path.join(source, today_date), "rb") as file:
+        decrypted_data = file.read()
+    cipher_suite = Fernet(str.encode(os.environ.get('ENCRYPT_K')))
+    encrypted_data = cipher_suite.encrypt(decrypted_data)
+    with open(os.path.join(source, today_date), "wb") as file:
+        file.write(encrypted_data)
+
 def create_daily_backup(source, destination):
     if os.environ.get('BACKUP_DAILY_COUNT').lower() != "unlimited":
         daily_backup_list = sorted(Path(destination).iterdir(), key=lambda f: f.stat().st_ctime)
         if len(daily_backup_list) == int(os.environ.get('BACKUP_DAILY_COUNT')):
             shutil.rmtree(daily_backup_list[0])
+    
     today_date = str(datetime.now().date())
     tar = tarfile.open(os.path.join(destination, today_date), "w:gz")
     tar.add(source, arcname=today_date)
     tar.close()
+
+    encrypt_file(destination, today_date)
 
 
 def create_weekly_backup(source, destination):
@@ -41,10 +53,13 @@ def create_weekly_backup(source, destination):
             weekly_backup_list = sorted(Path(destination).iterdir(), key=lambda f: f.stat().st_ctime)
             if len(weekly_backup_list) == int(os.environ.get('BACKUP_WEEKLY_COUNT')):
                 shutil.rmtree(weekly_backup_list[0])
+        
         today_date = str(datetime.now().date())
         tar = tarfile.open(os.path.join(destination, today_date), "w:gz")
         tar.add(source, arcname=today_date)
         tar.close()
+
+        encrypt_file(destination, today_date)
 
 
 def create_monthly_backup(source, destination):
@@ -53,10 +68,13 @@ def create_monthly_backup(source, destination):
             monthly_backup_list = sorted(Path(destination).iterdir(), key=lambda f: f.stat().st_ctime)
             if len(monthly_backup_list) == int(os.environ.get('BACKUP_MONTHLY_COUNT')):
                 shutil.rmtree(monthly_backup_list[0])
+        
         today_date = str(datetime.now().date())
         tar = tarfile.open(os.path.join(destination, today_date), "w:gz")
         tar.add(source, arcname=today_date)
         tar.close()
+
+        encrypt_file(destination, today_date)
 
 
 def create_yearly_backup(source, destination):
@@ -65,7 +83,10 @@ def create_yearly_backup(source, destination):
             yearly_backup_list = sorted(Path(destination).iterdir(), key=lambda f: f.stat().st_ctime)
             if len(yearly_backup_list) == int(os.environ.get('BACKUP_YEARLY_COUNT')):
                 shutil.rmtree(yearly_backup_list[0])
+        
         today_date = str(datetime.now().date())
         tar = tarfile.open(os.path.join(destination, today_date), "w:gz")
         tar.add(source, arcname=today_date)
         tar.close()
+
+        encrypt_file(destination, today_date)
