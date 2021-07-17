@@ -26,12 +26,15 @@ def create_backup_directions(source):
 
 
 def encrypt_file(source, today_date):
-    with open(os.path.join(source, today_date), "rb") as file:
-        decrypted_data = file.read()
-    cipher_suite = Fernet(str.encode(os.environ.get('ENCRYPT_K')))
-    encrypted_data = cipher_suite.encrypt(decrypted_data)
-    with open(os.path.join(source, today_date), "wb") as file:
-        file.write(encrypted_data)
+    try:
+        with open(os.path.join(source, today_date), "rb") as file:
+            decrypted_data = file.read()
+        cipher_suite = Fernet(str.encode(open('/run/secrets/ENCRYPT_K').read().rstrip('\n')))
+        encrypted_data = cipher_suite.encrypt(decrypted_data)
+        with open(os.path.join(source, today_date), "wb") as file:
+            file.write(encrypted_data)
+    except:
+        print("no encryption")
 
 def create_daily_backup(source, destination):
     if os.environ.get('BACKUP_DAILY_COUNT').lower() != "unlimited":
