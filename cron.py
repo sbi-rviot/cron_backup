@@ -5,7 +5,7 @@ import blueprints.cronBackup.functions as func
 
 
 sched = BlockingScheduler()
-@sched.scheduled_job('interval', days=1)
+@sched.scheduled_job('interval', days=1, misfire_grace_time=1000)
 def backup():
     '''
     DAILY BACKUP
